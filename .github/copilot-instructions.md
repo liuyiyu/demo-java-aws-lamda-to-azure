@@ -1,10 +1,11 @@
 
 Migration Plan: AWS Lambda Java to Containerized Spring Boot (Clean Architecture)
 
-Target: Azure Container Apps, Azure AKS, Azure App Services (NOT AWS)
+Target: Azure Container Apps, Azure AKS, Azure App Services
 
+Should be completed in 7 steps, each with detailed instructions.
 --------------------------------------------------------------------------------
-Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
+PHASE 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 --------------------------------------------------------------------------------
 - Inventory all existing AWS Lambda functions and document:
   - Handler class
@@ -30,7 +31,7 @@ Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 - Configure application.yml for environments.
 
 --------------------------------------------------------------------------------
-Step 2: DEFINE DOMAIN & APPLICATION LAYERS
+PHASE 2: DEFINE DOMAIN & APPLICATION LAYERS
 --------------------------------------------------------------------------------
 - Move business logic from Lambda handler to use case services.
 
@@ -43,7 +44,7 @@ Step 2: DEFINE DOMAIN & APPLICATION LAYERS
   - Implements business orchestration logic
 
 --------------------------------------------------------------------------------
-Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
+PHASE 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 --------------------------------------------------------------------------------
 - Create adapter/persistence layer:
   - Use Spring Data JPA (e.g., UserJpaRepository)
@@ -53,7 +54,7 @@ Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 - Annotate with @Repository or @Component.
 
 --------------------------------------------------------------------------------
-Step 4: DEVELOP CONTROLLER LAYER
+PHASE 4: DEVELOP CONTROLLER LAYER
 --------------------------------------------------------------------------------
 - Replace Lambda triggers with @RestController endpoints.
 
@@ -64,7 +65,7 @@ Step 4: DEVELOP CONTROLLER LAYER
 - Use proper HTTP verbs, response codes, and validation.
 
 --------------------------------------------------------------------------------
-Step 5: INCREMENTAL MIGRATION & VERIFICATION
+PHASE 5: INCREMENTAL MIGRATION & VERIFICATION
 --------------------------------------------------------------------------------
 - Migrate Lambdas function-by-function:
   - Extract logic → domain/application layer
@@ -84,7 +85,7 @@ Step 5: INCREMENTAL MIGRATION & VERIFICATION
 - Test in parallel with Lambda if needed.
 
 --------------------------------------------------------------------------------
-Step 6: CONTAINERIZATION & AZURE DEPLOYMENT
+PHASE 6: CONTAINERIZATION & AZURE DEPLOYMENT
 --------------------------------------------------------------------------------
 - Create Dockerfile:
   FROM eclipse-temurin:17-jdk
@@ -139,16 +140,28 @@ springboot-containerapp.yaml:
 - Deploy using:
   az containerapp create --resource-group rg-springboot --file springboot-containerapp.yaml
 
+
 --------------------------------------------------------------------------------
 BUILD TOOLING
 --------------------------------------------------------------------------------
-- Use either Maven or Gradle, based on your team's standard.
-  - If your existing Lambda project uses Maven (`pom.xml`), continue with Maven.
-  - If it uses Gradle (`build.gradle`), continue with Gradle.
+- For consistency and enterprise alignment, **use only Maven** for building and managing the Spring Boot application.
+  - If your existing AWS Lambda project used Gradle, migrate the build configuration to **Maven** during the transition.
+  - Remove all Gradle-related files after migration:
+    - `build.gradle` or `build.gradle.kts`
+    - `settings.gradle`
+    - `.gradle/` directory
+    - `gradlew` and `gradlew.bat`
+
+- Set up Maven wrapper in the root of the project:
+  - Run: `mvn -N io.takari:maven:wrapper`
+  - This adds:
+    - `mvnw` and `mvnw.cmd`
+    - `.mvn/wrapper` directory
+
 - Recommended Maven plugins for Spring Boot:
   - spring-boot-maven-plugin
   - maven-compiler-plugin
-  - build-helper-maven-plugin (for source directories if needed)
+  - build-helper-maven-plugin (optional)
 
 Example `pom.xml` snippet:
 <build>
@@ -159,18 +172,135 @@ Example `pom.xml` snippet:
     </plugin>
   </plugins>
 </build>
+
+
 --------------------------------------------------------------------------------
-BEST PRACTICES
+PHASE 7: Provide script AZURE INFRASTRUCTURE USING BICEP
 --------------------------------------------------------------------------------
-- Keep domain layer framework-free.
-- Use constructor-based dependency injection.
-- Use DTOs to isolate API contracts.
-- Enable OpenAPI docs for client clarity.
-- Avoid mixing responsibilities across layers.
-- Follow clean logging (no sensitive data).
-- Write unit and integration tests per function.
-- Use environment profiles for config separation.
-- Containerize with slim images (multi-stage builds).
+Use Bicep to provision infrastructure as code for consistent environments.
+
+Components to provision:
+- Azure Container Registry (ACR)
+- Azure Container Apps Environment
+- Log Analytics Workspace (for tracing)
+- Azure PostgreSQL Flexible Server (for test/prod)
+- Azure Cache for Redis (optional for dev/testing)
+- App Configuration / Key Vault (optional)
+
+Example: infrastructure/main.bicep
+
+param location string = 'Southeast Asia'
+param acrName string
+param logAnalyticsName string
+param postgresName string
+param containerAppEnvName string
+
+resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+  name: acrName
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+}
+
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: logAnalyticsName
+  location: location
+  sku: {
+    name: 'PerGB2018'
+  }
+  properties: {
+    retentionInDays: 30
+  }
+}
+
+resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' = {
+  name: postgresName
+  location: location
+  sku: {
+    name: 'Standard_B1ms',
+    tier: 'Burstable',
+    capacity: 1,
+    family: 'B'
+  }
+  properties: {
+    administratorLogin: 'dbadmin'
+    storage: {
+      storageSizeGB: 32
+    }
+    version: '14'
+    availabilityZone: '1'
+    backup: {
+      backupRetentionDays: 7
+    }
+  }
+}
+
+resource containerEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
+  name: containerAppEnvName
+  location: location
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalytics.properties.customerId
+        sharedKey: listKeys(logAnalytics.id, logAnalytics.apiVersion).primarySharedKey
+      }
+    }
+  }
+}
+
+--------------------------------------------------------------------------------
+ENVIRONMENT STRATEGY
+--------------------------------------------------------------------------------
+Use different configurations per environment:
+
+DEV:
+- Use in-memory H2 database
+- Optional: Use Azure Cache for Redis for local caching simulation
+- Container App uses 'dev' profile
+- Enable OpenAPI UI and verbose logging
+
+TEST:
+- Use in-memory H2 database
+- Use dev config (disable debug endpoints)
+- Container App uses 'test' profile
+
+PROD:
+- Use separate PostgreSQL Flexible Server
+- Enable diagnostics via Azure Monitor + Log Analytics
+- Container App uses 'prod' profile
+- Secrets and DB creds from Key Vault (optional)
+
+--------------------------------------------------------------------------------
+APPLICATION TRACING (REQUIRED FOR ALL ENVIRONMENTS)
+--------------------------------------------------------------------------------
+Enable distributed tracing and observability in Spring Boot:
+- Add Spring Boot Starter for Micrometer + Azure Monitor
+
+Add dependencies:
+pom.xml
+<dependency>
+  <groupId>com.microsoft.azure</groupId>
+  <artifactId>applicationinsights-spring-boot-starter</artifactId>
+  <version>3.4.8</version>
+</dependency>
+
+Enable tracing config:
+application.yml
+azure:
+  application-insights:
+    connection-string: ${APPINSIGHTS_CONNECTION_STRING}
+
+Log every major service, repository, and controller call with:
+- SLF4J logger
+- MDC correlation IDs
+- Custom tracing IDs if needed
+
+Use Log Analytics query in Azure to trace by operationId or correlationId
+
+This ensures every function call is traceable across environments.
+
 --------------------------------------------------------------------------------
 POST-MIGRATION CLEANUP
 --------------------------------------------------------------------------------
@@ -195,3 +325,16 @@ Once the migration is complete and validated:
   - Monitoring, logging, and scaling behave as expected
 
 This cleanup helps ensure your codebase is clean, focused, and avoids future confusion or accidental AWS re-deployment.
+
+--------------------------------------------------------------------------------
+BEST PRACTICES
+--------------------------------------------------------------------------------
+- Keep domain layer framework-free.
+- Use constructor-based dependency injection.
+- Use DTOs to isolate API contracts.
+- Enable OpenAPI docs for client clarity.
+- Avoid mixing responsibilities across layers.
+- Follow clean logging (no sensitive data).
+- Write unit and integration tests per function.
+- Use environment profiles for config separation.
+- Containerize with slim images (multi-stage builds).
