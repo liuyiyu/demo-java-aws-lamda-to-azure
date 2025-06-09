@@ -3,7 +3,7 @@ Migration Plan: AWS Lambda Java to Containerized Spring Boot (Clean Architecture
 
 Target: Azure Container Apps, Azure AKS, Azure App Services (NOT AWS)
 
-Should be completed in 6 steps, each with detailed instructions.
+Should be completed in 6 steps, each with detailed instructions and cleaning folder and files after migration completed.
 --------------------------------------------------------------------------------
 Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 --------------------------------------------------------------------------------
