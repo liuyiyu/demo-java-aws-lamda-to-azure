@@ -3,7 +3,6 @@ Migration Plan: AWS Lambda Java to Containerized Spring Boot (Clean Architecture
 
 Target: Azure Container Apps, Azure AKS, Azure App Services (NOT AWS)
 
-Should be completed in 6 steps, each with detailed instructions and cleaning folder and files after migration completed.
 --------------------------------------------------------------------------------
 Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 --------------------------------------------------------------------------------
@@ -43,25 +42,6 @@ Step 2: DEFINE DOMAIN & APPLICATION LAYERS
   - Service classes (e.g., UserService.java)
   - Implements business orchestration logic
 
-Example:
-  class User {
-    String id;
-    String name;
-  }
-
-  interface UserRepository {
-    User save(User user);
-    Optional<User> findById(String id);
-  }
-
-  class UserService {
-    private final UserRepository userRepository;
-    public User createUser(User user) {
-      // business logic
-      return userRepository.save(user);
-    }
-  }
-
 --------------------------------------------------------------------------------
 Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 --------------------------------------------------------------------------------
@@ -71,12 +51,6 @@ Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 
 - External service access (S3, etc.) goes here.
 - Annotate with @Repository or @Component.
-
-Example:
-  interface UserJpaRepository extends JpaRepository<UserEntity, String> {}
-  class UserPersistenceAdapter implements UserRepository {
-    // maps UserEntity <-> User
-  }
 
 --------------------------------------------------------------------------------
 Step 4: DEVELOP CONTROLLER LAYER
@@ -88,17 +62,6 @@ Step 4: DEVELOP CONTROLLER LAYER
 - Map request/response DTOs to domain models.
 
 - Use proper HTTP verbs, response codes, and validation.
-
-Example:
-  @RestController
-  @RequestMapping("/users")
-  class UserController {
-    @PostMapping
-    ResponseEntity<UserResponse> create(@RequestBody UserRequest request) {
-      User user = service.createUser(request.toUser());
-      return ResponseEntity.ok(new UserResponse(user));
-    }
-  }
 
 --------------------------------------------------------------------------------
 Step 5: INCREMENTAL MIGRATION & VERIFICATION
@@ -177,6 +140,26 @@ springboot-containerapp.yaml:
   az containerapp create --resource-group rg-springboot --file springboot-containerapp.yaml
 
 --------------------------------------------------------------------------------
+BUILD TOOLING
+--------------------------------------------------------------------------------
+- Use either Maven or Gradle, based on your team's standard.
+  - If your existing Lambda project uses Maven (`pom.xml`), continue with Maven.
+  - If it uses Gradle (`build.gradle`), continue with Gradle.
+- Recommended Maven plugins for Spring Boot:
+  - spring-boot-maven-plugin
+  - maven-compiler-plugin
+  - build-helper-maven-plugin (for source directories if needed)
+
+Example `pom.xml` snippet:
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-maven-plugin</artifactId>
+    </plugin>
+  </plugins>
+</build>
+--------------------------------------------------------------------------------
 BEST PRACTICES
 --------------------------------------------------------------------------------
 - Keep domain layer framework-free.
@@ -188,3 +171,27 @@ BEST PRACTICES
 - Write unit and integration tests per function.
 - Use environment profiles for config separation.
 - Containerize with slim images (multi-stage builds).
+--------------------------------------------------------------------------------
+POST-MIGRATION CLEANUP
+--------------------------------------------------------------------------------
+Once the migration is complete and validated:
+- Remove all AWS Lambda-related folders and files:
+  - Delete handler classes implementing `RequestHandler`
+  - Delete `lambda` packages or folders (e.g., `src/main/java/com/example/lambda`)
+  - Delete AWS-specific dependencies in `pom.xml` or `build.gradle`:
+    - aws-lambda-java-core
+    - aws-lambda-java-events
+    - aws-lambda-java-log4j2
+    - AWS SDK libraries if no longer needed
+  - Remove Lambda-specific `sam.yaml` or `template.yaml`
+  - Delete deployment scripts or JSON files related to AWS
+
+- Clean up test code related to Lambda
+- Delete old README sections or documentation referring to Lambda
+
+- Confirm that:
+  - All functionality has parity in the Spring Boot app
+  - The container is deployed successfully to Azure (ACA/AKS/App Service)
+  - Monitoring, logging, and scaling behave as expected
+
+This cleanup helps ensure your codebase is clean, focused, and avoids future confusion or accidental AWS re-deployment.
