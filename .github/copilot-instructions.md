@@ -85,60 +85,12 @@ PHASE 5: INCREMENTAL MIGRATION & VERIFICATION
 - Test in parallel with Lambda if needed.
 
 --------------------------------------------------------------------------------
-PHASE 6: CONTAINERIZATION & AZURE DEPLOYMENT
+PHASE 6: CONTAINERIZATION 
 --------------------------------------------------------------------------------
 - Create Dockerfile:
   FROM eclipse-temurin:17-jdk
   COPY target/app.jar app.jar
   ENTRYPOINT ["java", "-jar", "app.jar"]
-
-- Build & push to Azure Container Registry (ACR):
-  az acr build --image springboot-api:1.0.0 --registry myacr --file Dockerfile .
-
-- Create ACA environment (if not yet):
-  az containerapp env create --name aca-env --resource-group rg-springboot --location eastasia
-
-- Deploy with YAML:
-
-springboot-containerapp.yaml:
-  name: springboot-api
-  type: Microsoft.App/containerApps@2023-05-01
-  location: eastasia
-  properties:
-    environmentId: /subscriptions/<subscription-id>/resourceGroups/rg-springboot/providers/Microsoft.App/managedEnvironments/aca-env
-    configuration:
-      ingress:
-        external: true
-        targetPort: 8080
-        transport: auto
-        allowInsecure: false
-      registries:
-        - server: myacr.azurecr.io
-          identity: system
-      secrets:
-        - name: spring_profile
-          value: "prod"
-    template:
-      containers:
-        - name: springboot-api
-          image: myacr.azurecr.io/springboot-api:1.0.0
-          resources:
-            cpu: 0.5
-            memory: 1Gi
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              secretRef: spring_profile
-      scale:
-        minReplicas: 1
-        maxReplicas: 5
-        rules:
-          - name: http-scaling
-            http:
-              metadata:
-                concurrentRequests: "100"
-
-- Deploy using:
-  az containerapp create --resource-group rg-springboot --file springboot-containerapp.yaml
 
 
 --------------------------------------------------------------------------------
