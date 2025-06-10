@@ -5,7 +5,7 @@ Target: Azure Container Apps, Azure AKS, Azure App Services
 
 Should be completed in 7 steps, each with detailed instructions.
 --------------------------------------------------------------------------------
-PHASE 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
+Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 --------------------------------------------------------------------------------
 - Inventory all existing AWS Lambda functions and document:
   - Handler class
@@ -31,7 +31,7 @@ PHASE 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
 - Configure application.yml for environments.
 
 --------------------------------------------------------------------------------
-PHASE 2: DEFINE DOMAIN & APPLICATION LAYERS
+Step 2: DEFINE DOMAIN & APPLICATION LAYERS
 --------------------------------------------------------------------------------
 - Move business logic from Lambda handler to use case services.
 
@@ -44,7 +44,7 @@ PHASE 2: DEFINE DOMAIN & APPLICATION LAYERS
   - Implements business orchestration logic
 
 --------------------------------------------------------------------------------
-PHASE 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
+Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 --------------------------------------------------------------------------------
 - Create adapter/persistence layer:
   - Use Spring Data JPA (e.g., UserJpaRepository)
@@ -54,7 +54,7 @@ PHASE 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
 - Annotate with @Repository or @Component.
 
 --------------------------------------------------------------------------------
-PHASE 4: DEVELOP CONTROLLER LAYER
+Step 4: DEVELOP CONTROLLER LAYER
 --------------------------------------------------------------------------------
 - Replace Lambda triggers with @RestController endpoints.
 
@@ -65,7 +65,7 @@ PHASE 4: DEVELOP CONTROLLER LAYER
 - Use proper HTTP verbs, response codes, and validation.
 
 --------------------------------------------------------------------------------
-PHASE 5: INCREMENTAL MIGRATION & VERIFICATION
+Step 5: INCREMENTAL MIGRATION & VERIFICATION
 --------------------------------------------------------------------------------
 - Migrate Lambdas function-by-function:
   - Extract logic → domain/application layer
@@ -85,7 +85,7 @@ PHASE 5: INCREMENTAL MIGRATION & VERIFICATION
 - Test in parallel with Lambda if needed.
 
 --------------------------------------------------------------------------------
-PHASE 6: CONTAINERIZATION 
+Step 6: CONTAINERIZATION 
 --------------------------------------------------------------------------------
 - Create Dockerfile:
   FROM eclipse-temurin:17-jdk
@@ -127,7 +127,7 @@ Example `pom.xml` snippet:
 
 
 --------------------------------------------------------------------------------
-PHASE 7: Provide script AZURE INFRASTRUCTURE USING BICEP
+Step 7: Provide script AZURE INFRASTRUCTURE USING BICEP
 --------------------------------------------------------------------------------
 Use Bicep to provision infrastructure as code for consistent environments.
 
