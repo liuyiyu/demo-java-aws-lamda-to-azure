@@ -1,292 +1,238 @@
+# Java Spring Boot 3.x Web API Best Practices & Guidelines
 
-Migration Plan: AWS Lambda Java to Containerized Spring Boot (Clean Architecture)
+## Task
+You are an expert in **Java, Spring Boot 3.x, Clean Architecture, JPA (Hibernate), Dapper-like Querying (via Spring JdbcTemplate or MyBatis), OpenTelemetry, Structured Logging (SLF4J + Logback), Bean Validation (Jakarta Validation), MapStruct/ModelMapper, and JUnit/Mockito**.
 
-Target: Azure Container Apps, Azure AKS, Azure App Services
+You must build and maintain a **secure, observable, testable, and modular Java containerized Spring Boot Web API** application that follows **enterprise-grade best practices**. The architecture must remain maintainable and scalable, while staying runnable out-of-the-box — using a flat folder structure with a single main application module (plus an optional test module).
 
-Should be completed in 7 steps, each with detailed instructions.
---------------------------------------------------------------------------------
-Step 1: ASSESS & INITIALIZE SPRING BOOT PROJECT
---------------------------------------------------------------------------------
-- Inventory all existing AWS Lambda functions and document:
-  - Handler class
-  - Trigger type (API Gateway, SQS, etc.)
-  - Input/output structure
-  - External dependencies (S3, DynamoDB, etc.)
+> **Deployment Target: Azure Container Apps / Azure AKS / Azure App Services**
 
-- Create new Spring Boot project:
-  - Use https://start.spring.io with Web + Spring Boot 3.x
-  - Dependencies: spring-boot-starter-web, spring-boot-starter-test, Lombok, etc.
-  - Package name: com.example.migration
-  - Application class: MigrationApplication.java
+---
 
-- Folder structure:
-  src/main/java/com/example/migration/
-    ├── MigrationApplication.java
-    ├── domain/
-    ├── application/
-    ├── adapter/
-    ├── controller/
-    └── dto/
+## 1. General Standards
 
-- Configure application.yml for environments.
+- Apply **Clean Architecture**, **SOLID principles**, and **Domain-Driven Design (DDD)**.
+- All business logic must reside in the **Application Layer**, not in Controllers.
+- Every API function must include:
+  - OpenTelemetry **tracing**
+  - Structured **logging** (SLF4J)
+  - A **unit test**
+  - Error handling with standardized error response
+- Use `record` classes for DTOs.
+- Enable `nullable` strict checks (IDE level + Java 17 features).
+- Use **constructor-based dependency injection** (no field injection or static access).
 
---------------------------------------------------------------------------------
-Step 2: DEFINE DOMAIN & APPLICATION LAYERS
---------------------------------------------------------------------------------
-- Move business logic from Lambda handler to use case services.
-
-- Domain Layer:
-  - Plain Java classes (e.g., User.java)
-  - Interfaces for ports (e.g., UserRepository)
-
-- Application Layer:
-  - Service classes (e.g., UserService.java)
-  - Implements business orchestration logic
-
---------------------------------------------------------------------------------
-Step 3: IMPLEMENT ADAPTER (INFRASTRUCTURE) LAYER
---------------------------------------------------------------------------------
-- Create adapter/persistence layer:
-  - Use Spring Data JPA (e.g., UserJpaRepository)
-  - Or manual in-memory repository for tests
-
-- External service access (S3, etc.) goes here.
-- Annotate with @Repository or @Component.
-
---------------------------------------------------------------------------------
-Step 4: DEVELOP CONTROLLER LAYER
---------------------------------------------------------------------------------
-- Replace Lambda triggers with @RestController endpoints.
-
-- Use OpenAPI annotations via springdoc-openapi-ui.
-
-- Map request/response DTOs to domain models.
-
-- Use proper HTTP verbs, response codes, and validation.
-
---------------------------------------------------------------------------------
-Step 5: INCREMENTAL MIGRATION & VERIFICATION
---------------------------------------------------------------------------------
-- Migrate Lambdas function-by-function:
-  - Extract logic → domain/application layer
-  - Create matching controller
-  - Write unit + integration tests
-  - Compare behavior against Lambda (input/output)
-
-- Add error handling:
-  - Use @ControllerAdvice for global exception handler
-
-- Add validation:
-  - Use @Valid with javax.validation annotations
-
-- Add structured logging:
-  - Use SLF4J (Logback or Log4j2)
-
-- Test in parallel with Lambda if needed.
-
---------------------------------------------------------------------------------
-Step 6: CONTAINERIZATION 
---------------------------------------------------------------------------------
-- Create Dockerfile:
-  FROM eclipse-temurin:17-jdk
-  COPY target/app.jar app.jar
-  ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
---------------------------------------------------------------------------------
-BUILD TOOLING
---------------------------------------------------------------------------------
-- For consistency and enterprise alignment, **use only Maven** for building and managing the Spring Boot application.
-  - If your existing AWS Lambda project used Gradle, migrate the build configuration to **Maven** during the transition.
-  - Remove all Gradle-related files after migration:
-    - `build.gradle` or `build.gradle.kts`
-    - `settings.gradle`
-    - `.gradle/` directory
-    - `gradlew` and `gradlew.bat`
-
-- Set up Maven wrapper in the root of the project:
-  - Run: `mvn -N io.takari:maven:wrapper`
-  - This adds:
-    - `mvnw` and `mvnw.cmd`
-    - `.mvn/wrapper` directory
-
-- Recommended Maven plugins for Spring Boot:
-  - spring-boot-maven-plugin
-  - maven-compiler-plugin
-  - build-helper-maven-plugin (optional)
-
-Example `pom.xml` snippet:
-<build>
-  <plugins>
-    <plugin>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-maven-plugin</artifactId>
-    </plugin>
-  </plugins>
-</build>
-
-
---------------------------------------------------------------------------------
-Step 7: Provide script AZURE INFRASTRUCTURE USING BICEP
---------------------------------------------------------------------------------
-Use Bicep to provision infrastructure as code for consistent environments.
-
-Components to provision:
-- Azure Container Registry (ACR)
-- Azure Container Apps Environment
-- Log Analytics Workspace (for tracing)
-- Azure PostgreSQL Flexible Server (for test/prod)
-- Azure Cache for Redis (optional for dev/testing)
-- App Configuration / Key Vault (optional)
-
-Example: infrastructure/main.bicep
-
-param location string = 'Southeast Asia'
-param acrName string
-param logAnalyticsName string
-param postgresName string
-param containerAppEnvName string
-
-resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: acrName
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-}
-
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
-  name: logAnalyticsName
-  location: location
-  sku: {
-    name: 'PerGB2018'
-  }
-  properties: {
-    retentionInDays: 30
-  }
-}
-
-resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' = {
-  name: postgresName
-  location: location
-  sku: {
-    name: 'Standard_B1ms',
-    tier: 'Burstable',
-    capacity: 1,
-    family: 'B'
-  }
-  properties: {
-    administratorLogin: 'dbadmin'
-    storage: {
-      storageSizeGB: 32
+### Error Handling Standards
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiError(ex.getMessage()));
     }
-    version: '14'
-    availabilityZone: '1'
-    backup: {
-      backupRetentionDays: 7
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiError> handleValidation(ValidationException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ApiError(ex.getMessage()));
     }
-  }
-}
 
-resource containerEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: containerAppEnvName
-  location: location
-  properties: {
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: logAnalytics.properties.customerId
-        sharedKey: listKeys(logAnalytics.id, logAnalytics.apiVersion).primarySharedKey
-      }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGeneric(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiError("An unexpected error occurred"));
     }
-  }
 }
+```
 
---------------------------------------------------------------------------------
-ENVIRONMENT STRATEGY
---------------------------------------------------------------------------------
-Use different configurations per environment:
+---
 
-DEV:
-- Use in-memory H2 database
-- Optional: Use Azure Cache for Redis for local caching simulation
-- Container App uses 'dev' profile
-- Enable OpenAPI UI and verbose logging
+## 2. Module Creation Requirements
 
-TEST:
-- Use in-memory H2 database
-- Use dev config (disable debug endpoints)
-- Container App uses 'test' profile
+### Module Structure
+```
+src/main/java/com/example/<module>/
+├── controller/
+├── domain/
+├── dto/
+├── repository/
+├── service/
+├── validator/
+├── config/
+└── mapper/
+```
 
-PROD:
-- Use separate PostgreSQL Flexible Server
-- Enable diagnostics via Azure Monitor + Log Analytics
-- Container App uses 'prod' profile
-- Secrets and DB creds from Key Vault (optional)
+### Implementation Flow
+1. **Plan**
+   - Identify entity, endpoints, schema
+   - Plan DB structure and external integrations
 
---------------------------------------------------------------------------------
-APPLICATION TRACING (REQUIRED FOR ALL ENVIRONMENTS)
---------------------------------------------------------------------------------
-Enable distributed tracing and observability in Spring Boot:
-- Add Spring Boot Starter for Micrometer + Azure Monitor
+2. **Implement**
+   - Create domain entity (extend `BaseEntity`)
+   - Add JPA/Hibernate entity config
+   - Add repository interface and implementation (Spring Data JPA or JdbcTemplate)
+   - Create DTOs + mapping with MapStruct or ModelMapper
+   - Add service class with business logic
+   - Add `@RestController` with endpoints
+   - Create validator with Jakarta `@Valid`
 
-Add dependencies:
-pom.xml
-<dependency>
-  <groupId>com.microsoft.azure</groupId>
-  <artifactId>applicationinsights-spring-boot-starter</artifactId>
-  <version>3.4.8</version>
-</dependency>
+3. **Integrate**
+   - Register beans via `@Configuration`
+   - Add OpenAPI docs
+   - Implement observability + structured logging
+   - Write unit + integration tests
 
-Enable tracing config:
-application.yml
-azure:
-  application-insights:
-    connection-string: ${APPINSIGHTS_CONNECTION_STRING}
+---
 
-Log every major service, repository, and controller call with:
-- SLF4J logger
-- MDC correlation IDs
-- Custom tracing IDs if needed
+## 3. Observability Standards
 
-Use Log Analytics query in Azure to trace by operationId or correlationId
+### OTEL Tracing
+```java
+@Autowired
+private Tracer tracer;
 
-This ensures every function call is traceable across environments.
+public void process() {
+    Span span = tracer.spanBuilder("ModuleService.process").startSpan();
+    try (Scope scope = span.makeCurrent()) {
+        // business logic
+    } catch (Exception ex) {
+        span.setStatus(StatusCode.ERROR);
+        span.recordException(ex);
+        throw ex;
+    } finally {
+        span.end();
+    }
+}
+```
 
---------------------------------------------------------------------------------
-POST-MIGRATION CLEANUP
---------------------------------------------------------------------------------
-Once the migration is complete and validated:
-- Remove all AWS Lambda-related folders and files:
-  - Delete handler classes implementing `RequestHandler`
-  - Delete `lambda` packages or folders (e.g., `src/main/java/com/example/lambda`)
-  - Delete AWS-specific dependencies in `pom.xml` or `build.gradle`:
-    - aws-lambda-java-core
-    - aws-lambda-java-events
-    - aws-lambda-java-log4j2
-    - AWS SDK libraries if no longer needed
-  - Remove Lambda-specific `sam.yaml` or `template.yaml`
-  - Delete deployment scripts or JSON files related to AWS
+### Structured Logging
+- Use **SLF4J + Logback**
+- Include `correlationId` or `traceId` in logs
+- Log levels:
+  - DEBUG: Dev debugging
+  - INFO: General ops
+  - WARN: Business edge cases
+  - ERROR: Unhandled issues
 
-- Clean up test code related to Lambda
-- Delete old README sections or documentation referring to Lambda
+---
 
-- Confirm that:
-  - All functionality has parity in the Spring Boot app
-  - The container is deployed successfully to Azure (ACA/AKS/App Service)
-  - Monitoring, logging, and scaling behave as expected
+## 4. Testing Requirements
 
-This cleanup helps ensure your codebase is clean, focused, and avoids future confusion or accidental AWS re-deployment.
+- Use **JUnit 5 + Mockito**
+- Test structure:
+```
+src/test/java/com/example/<module>/
+├── controller/       // Integration Tests
+├── service/          // Unit Tests
+├── repository/       // Repository Tests
+└── validator/        // Validator Tests
+```
 
---------------------------------------------------------------------------------
-BEST PRACTICES
---------------------------------------------------------------------------------
-- Keep domain layer framework-free.
-- Use constructor-based dependency injection.
-- Use DTOs to isolate API contracts.
-- Enable OpenAPI docs for client clarity.
-- Avoid mixing responsibilities across layers.
-- Follow clean logging (no sensitive data).
-- Write unit and integration tests per function.
-- Use environment profiles for config separation.
-- Containerize with slim images (multi-stage builds).
+- Ensure **80%+ coverage** with coverage reports
+
+---
+
+## 5. Build Tooling
+
+- **Use only Maven**:
+  - Provide `mvnw` wrapper
+  - Remove Gradle-related files if migrating
+
+```xml
+<!-- Example plugins in pom.xml -->
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+</plugin>
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+</plugin>
+```
+
+---
+
+## 6. Infrastructure & Deployment
+
+- Containerize via Docker (use Temurin JDK 17):
+```Dockerfile
+FROM eclipse-temurin:17-jdk
+COPY target/app.jar app.jar
+ENTRYPOINT ["java", " -jar", "app.jar"]
+```
+
+- Provision Azure infra with Bicep:
+  - ACR
+  - Azure Container Apps / AKS / App Services
+  - PostgreSQL Flexible Server
+  - Log Analytics
+  - Azure Monitor for OTEL
+
+---
+
+## 7. Database Guidelines
+
+- Use **PostgreSQL** or **H2** (DEV/TEST)
+- Configure via `application.yml` with profiles
+- Use JPA entities with `@Entity` + `@Table`
+
+```java
+@MappedSuperclass
+public abstract class BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String createdBy;
+    private String updatedBy;
+}
+```
+
+- Use migrations (Flyway or Liquibase)
+- Optimize with indexes, projections
+
+---
+
+## 8. Security Best Practices
+
+- Use `@Valid`, `@Validated` on controller inputs
+- Hide sensitive logs
+- Secure env config with Key Vault or Secrets Manager
+- Avoid exposing stack traces
+
+---
+
+## 9. Documentation Standards
+
+- OpenAPI via `springdoc-openapi`
+- Add `@Operation`, `@ApiResponse`, and `@Parameter` annotations
+- Enable Swagger UI in `dev` profile
+
+---
+
+## 10. CI/CD & Monitoring
+
+- Automate build + test via GitHub Actions
+- Push to ACR
+- Deploy to ACA/AKS
+- Use OTEL + Azure Monitor for tracing/alerts
+- Use health checks `/actuator/health`
+
+---
+
+## 11. Final Checklist
+
+| Feature               | Required? |
+|------------------------|-----------|
+| Clean Architecture     | ✅        |
+| OTEL Tracing           | ✅        |
+| Structured Logging     | ✅        |
+| Unit Tests             | ✅        |
+| Integration Tests      | ✅        |
+| Maven Build            | ✅        |
+| Containerized          | ✅        |
+| OpenAPI Docs           | ✅        |
+| Dev/Test/Prod Profiles | ✅        |
+| Error Handling         | ✅        |
