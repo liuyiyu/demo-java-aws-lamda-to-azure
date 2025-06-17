@@ -7,6 +7,7 @@ You must build and maintain a **secure, observable, testable, and modular Java c
 
 > **Deployment Target: Azure Container Apps / Azure AKS / Azure App Services**
 
+## when input asking information or create issued github should be using GitHub MCP Server
 ---
 
 ## 1. General Standards
