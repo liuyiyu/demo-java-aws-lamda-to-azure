@@ -1,0 +1,11 @@
+{
+    "FUNCTIONS_WORKER_RUNTIME": "java",
+    "FUNCTIONS_EXTENSION_VERSION": "~4",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "@Microsoft.KeyVault(SecretUri=https://your-keyvault.vault.azure.net/secrets/AppInsightsKey/)",
+    "AzureWebJobsStorage": "@Microsoft.KeyVault(SecretUri=https://your-keyvault.vault.azure.net/secrets/StorageConnectionString/)",
+    "WEBSITE_RUN_FROM_PACKAGE": "1",
+    "JAVA_OPTS": "-XX:+PrintFlagsFinal -XX:+PrintGCDetails -verbose:gc",
+    "FUNCTIONS_JAVA_OPTS": "-XX:+UseG1GC",
+    "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
+    "WEBSITE_TIME_ZONE": "UTC"
+}

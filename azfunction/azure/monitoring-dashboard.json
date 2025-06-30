@@ -1,0 +1,48 @@
+{
+    "id": "course-management-dashboard",
+    "dashboardMetadata": {
+        "name": "Course Management Functions Dashboard",
+        "type": "Application"
+    },
+    "lenses": {
+        "0": {
+            "order": 0,
+            "parts": {
+                "0": {
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "colSpan": 6,
+                        "rowSpan": 4
+                    },
+                    "metadata": {
+                        "inputs": [
+                            {
+                                "name": "resourceGroup",
+                                "value": "rg-course-management"
+                            }
+                        ],
+                        "type": "Extension/AppInsightsExtension/PartType/QuickPulseBladeV2"
+                    }
+                },
+                "1": {
+                    "position": {
+                        "x": 6,
+                        "y": 0,
+                        "colSpan": 6,
+                        "rowSpan": 4
+                    },
+                    "metadata": {
+                        "inputs": [
+                            {
+                                "name": "ComponentId",
+                                "value": "/subscriptions/${subscription}/resourceGroups/rg-course-management/providers/microsoft.insights/components/course-management-function"
+                            }
+                        ],
+                        "type": "Extension/AppInsightsExtension/PartType/FailuresBladeV3"
+                    }
+                }
+            }
+        }
+    }
+}

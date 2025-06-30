@@ -1,0 +1,50 @@
+{
+    "version": "2.0",
+    "logging": {
+        "applicationInsights": {
+            "samplingSettings": {
+                "isEnabled": true,
+                "excludedTypes": "Request",
+                "includedTypes": "PageView;Trace;Dependency;CustomEvent",
+                "maxTelemetryItemsPerSecond": 20
+            },
+            "enableLiveMetrics": true,
+            "enableDependencyTracking": true,
+            "enablePerformanceCountersCollection": true
+        },
+        "logLevel": {
+            "default": "Information",
+            "Host.Results": "Error",
+            "Function": "Information",
+            "Host.Aggregator": "Information"
+        },
+        "fileLoggingMode": "always",
+        "console": {
+            "isEnabled": true
+        }
+    },
+    "extensionBundle": {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[3.*, 4.0.0)"
+    },
+    "functionTimeout": "00:05:00",
+    "extensions": {
+        "http": {
+            "routePrefix": "api",
+            "maxOutstandingRequests": 200,
+            "maxConcurrentRequests": 100,
+            "dynamicThrottlesEnabled": true,
+            "hsts": {
+                "isEnabled": true,
+                "maxAge": "365"
+            }
+        }
+    },
+    "healthMonitor": {
+        "enabled": true,
+        "healthCheckInterval": "00:00:10"
+    },
+    "managedDependency": {
+        "enabled": true
+    }
+}
