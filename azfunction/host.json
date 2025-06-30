@@ -1,17 +1,6 @@
 {
     "version": "2.0",
     "logging": {
-        "applicationInsights": {
-            "samplingSettings": {
-                "isEnabled": true,
-                "excludedTypes": "Request",
-                "includedTypes": "PageView;Trace;Dependency;CustomEvent",
-                "maxTelemetryItemsPerSecond": 20
-            },
-            "enableLiveMetrics": true,
-            "enableDependencyTracking": true,
-            "enablePerformanceCountersCollection": true
-        },
         "logLevel": {
             "default": "Information",
             "Host.Results": "Error",
