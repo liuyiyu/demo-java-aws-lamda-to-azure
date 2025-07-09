@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../course-management-function-1.0.0.jar",
+  "entryPoint" : "com.javatechie.function.PingFunction.run",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "req",
+    "route" : "ping",
+    "methods" : [ "GET" ],
+    "authLevel" : "ANONYMOUS"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.javatechie.function.CourseFunctionTest
--------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.568 s -- in com.javatechie.function.CourseFunctionTest
