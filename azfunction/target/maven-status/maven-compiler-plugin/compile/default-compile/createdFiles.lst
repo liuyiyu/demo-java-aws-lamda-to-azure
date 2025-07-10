@@ -1,2 +1,6 @@
-com\javatechie\CourseManagementApplication.class
 com\javatechie\function\PingFunction.class
+com\javatechie\dto\ErrorResponse.class
+com\javatechie\CourseManagementApplication.class
+com\javatechie\service\CourseService.class
+com\javatechie\dto\Course.class
+com\javatechie\function\CourseFunction.class

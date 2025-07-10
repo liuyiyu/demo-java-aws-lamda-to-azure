@@ -1,47 +1,50 @@
 package com.javatechie.service;
 
 import com.javatechie.dto.Course;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Service
 public class CourseService {
-
-    //RDS DB
+    
     private final List<Course> courses = new ArrayList<>();
-
-    // Create a new course
-    public void addCourse(Course course) {
-        courses.add(course);
+    private final AtomicLong idGenerator = new AtomicLong(1);
+    
+    public CourseService() {
+        // Initialize with some sample data
+        courses.add(new Course(1L, "Java Basics", 99.99));
+        courses.add(new Course(2L, "Spring Boot", 149.99));
+        courses.add(new Course(3L, "Azure Functions", 199.99));
     }
-
-    // Retrieve all courses
+    
     public List<Course> getAllCourses() {
-        return courses;
+        return new ArrayList<>(courses);
     }
-
-    // Retrieve a course by id
-    public Optional<Course> getCourseById(int id) {
+    
+    public Course getCourseById(Long id) {
         return courses.stream()
-                .filter(course -> course.getId() == id)
-                .findFirst();
+                .filter(course -> course.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
-
-    // Update a course
-    public boolean updateCourse(int id, Course newCourse) {
-        return getCourseById(id).map(existingCourse -> {
-            courses.remove(existingCourse);
-            courses.add(newCourse);
-            return true;
-        }).orElse(false);
+    
+    public Course createCourse(Course course) {
+        course.setId(idGenerator.getAndIncrement() + 3);
+        courses.add(course);
+        return course;
     }
-
-    // Delete a course by id
-    public boolean deleteCourse(int id) {
-        return courses
-                .removeIf(course -> course.getId() == id);
+    
+    public Course updateCourse(Long id, Course updatedCourse) {
+        Course existingCourse = getCourseById(id);
+        if (existingCourse != null) {
+            existingCourse.setName(updatedCourse.getName());
+            existingCourse.setPrice(updatedCourse.getPrice());
+            return existingCourse;
+        }
+        return null;
+    }
+    
+    public boolean deleteCourse(Long id) {
+        return courses.removeIf(course -> course.getId().equals(id));
     }
 }

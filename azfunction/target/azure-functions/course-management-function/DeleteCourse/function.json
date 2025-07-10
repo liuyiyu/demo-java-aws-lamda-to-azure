@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../course-management-function-1.0.0.jar",
+  "entryPoint" : "com.javatechie.function.CourseFunction.deleteCourse",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "req",
+    "route" : "courses/{id}",
+    "methods" : [ "DELETE" ],
+    "authLevel" : "ANONYMOUS"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}

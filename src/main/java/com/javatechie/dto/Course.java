@@ -1,25 +1,42 @@
 package com.javatechie.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Course {
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private int id;
-
-    @NotBlank(message = "Course name is required")
+    private Long id;
     private String name;
-
-    @NotNull(message = "Price is required")
-    @Positive(message = "Price must be greater than 0")
     private double price;
+    
+    // Default constructor
+    public Course() {}
+    
+    // Constructor
+    public Course(Long id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+    
+    // Getters and setters
+    public Long getId() { 
+        return id; 
+    }
+    
+    public void setId(Long id) { 
+        this.id = id; 
+    }
+    
+    public String getName() { 
+        return name; 
+    }
+    
+    public void setName(String name) { 
+        this.name = name; 
+    }
+    
+    public double getPrice() { 
+        return price; 
+    }
+    
+    public void setPrice(double price) { 
+        this.price = price; 
+    }
 }
