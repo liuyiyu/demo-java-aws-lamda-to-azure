@@ -1,9 +1,2 @@
-com\javatechie\config\RouterConfig.class
-com\javatechie\config\GlobalExceptionHandler.class
-com\javatechie\function\PingFunction.class
-com\javatechie\dto\ErrorResponse.class
 com\javatechie\CourseManagementApplication.class
-com\javatechie\service\CourseService.class
-com\javatechie\dto\Course.class
-com\javatechie\config\AzureFunctionConfig.class
-com\javatechie\function\CourseFunction.class
+com\javatechie\function\PingFunction.class

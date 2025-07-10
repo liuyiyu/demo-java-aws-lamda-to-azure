@@ -1,15 +1,8 @@
 {
-    "IsEncrypted": false,
-    "Values": {
-        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "java",
-        "FUNCTIONS_EXTENSION_VERSION": "~4",
-        "WEBSITE_RUN_FROM_PACKAGE": "1",
-        "AzureWebJobsDisableHomepage": "true",
-        "FUNCTIONS_JAVA_VERSION": "17",
-        "SPRING_PROFILES_ACTIVE": "dev"
-    },
-    "Host": {
-        "LocalHttpPort": 7071
-    }
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "java",
+    "AzureWebJobsDashboard": ""
+  }
 }

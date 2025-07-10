@@ -4,12 +4,12 @@ import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
 import org.springframework.cloud.function.adapter.azure.FunctionInvoker;
 
-public class PingFunction extends FunctionInvoker<Void, String> {
+public class PingFunction extends FunctionInvoker<Void, String>{
 
     @FunctionName("ping")
-    public HttpResponseMessage run(
+    public HttpResponseMessage execute(
             @HttpTrigger(
-                    name = "req",
+                    name = "request",
                     methods = {HttpMethod.GET},
                     authLevel = AuthorizationLevel.ANONYMOUS,
                     route = "ping"
