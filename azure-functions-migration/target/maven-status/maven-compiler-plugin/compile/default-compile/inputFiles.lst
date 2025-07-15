@@ -1,0 +1,8 @@
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\AzureFunctionsApplication.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\config\BlobConfig.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\dto\Course.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\functions\BlobFunction.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\functions\CourseFunction.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\functions\PingFunction.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\service\BlobService.java
+C:\dev\javaappmod\function\function0715\demo-java-aws-lamda-to-azure\azure-functions-migration\src\main\java\com\javatechie\service\CourseService.java

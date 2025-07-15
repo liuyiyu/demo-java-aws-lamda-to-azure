@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BlobService {
-
+/*
     @Autowired
     private BlobServiceClient blobServiceClient;
 
@@ -53,4 +53,5 @@ public class BlobService {
             return false;
         }
     }
+    */
 }

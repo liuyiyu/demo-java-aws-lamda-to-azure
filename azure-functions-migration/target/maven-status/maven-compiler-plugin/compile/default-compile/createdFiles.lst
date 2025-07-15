@@ -1,0 +1,8 @@
+com\javatechie\function\PingFunction.class
+com\javatechie\config\BlobConfig.class
+com\javatechie\service\CourseService.class
+com\javatechie\AzureFunctionsApplication.class
+com\javatechie\functions\CourseFunction.class
+com\javatechie\dto\Course.class
+com\javatechie\service\BlobService.class
+com\javatechie\functions\BlobFunction.class

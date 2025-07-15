@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class BlobFunction extends FunctionInvoker<String, Object> {
-
+/*
     @Autowired
     private BlobService blobService;
 
@@ -127,4 +127,7 @@ public class BlobFunction extends FunctionInvoker<String, Object> {
                     .build();
         }
     }
+
+
+    */
 }

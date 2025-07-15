@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../azure-functions-migration-1.0-SNAPSHOT.jar",
+  "entryPoint" : "com.javatechie.functions.CourseFunction.getCourseById",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "req",
+    "route" : "courses/{id}",
+    "methods" : [ "GET" ],
+    "authLevel" : "FUNCTION"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}

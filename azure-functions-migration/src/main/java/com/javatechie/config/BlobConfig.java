@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BlobConfig {
-
+/*
     @Value("${azure.storage.connection-string}")
     private String connectionString;
 
@@ -18,4 +18,5 @@ public class BlobConfig {
                 .connectionString(connectionString)
                 .buildClient();
     }
+    */
 }

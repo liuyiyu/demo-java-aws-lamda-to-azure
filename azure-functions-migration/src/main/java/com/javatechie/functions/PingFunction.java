@@ -1,32 +1,26 @@
-package com.javatechie.functions;
+package com.javatechie.function;
 
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
 import org.springframework.cloud.function.adapter.azure.FunctionInvoker;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-public class PingFunction extends FunctionInvoker<String, Map<String, String>> {
+public class PingFunction extends FunctionInvoker<Void, String>{
 
     @FunctionName("ping")
-    public HttpResponseMessage ping(
-            @HttpTrigger(name = "req",
-                        methods = {HttpMethod.GET},
-                        authLevel = AuthorizationLevel.ANONYMOUS,
-                        route = "ping")
-            HttpRequestMessage<Optional<String>> request,
+    public HttpResponseMessage execute(
+            @HttpTrigger(
+                    name = "request",
+                    methods = {HttpMethod.GET},
+                    authLevel = AuthorizationLevel.ANONYMOUS,
+                    route = "ping"
+            ) HttpRequestMessage<Void> request,
             final ExecutionContext context) {
-
-        context.getLogger().info("Ping function processed a request.");
-
-        Map<String, String> response = new HashMap<>();
-        response.put("pong", "Hello, World!");
-
+        
+        context.getLogger().info("Processing ping request.");
+        
         return request.createResponseBuilder(HttpStatus.OK)
-                .header("Content-Type", "application/json")
-                .body(response)
+                .body("Application is running!")
+                .header("Content-Type", "text/plain")
                 .build();
     }
 }

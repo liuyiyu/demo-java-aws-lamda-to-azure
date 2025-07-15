@@ -17,38 +17,75 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <azure.functions.maven.plugin.version>1.18.0</azure.functions.maven.plugin.version>
+        <functionAppName>azure-functions-migration</functionAppName>
+        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+        <azure.functions.maven.plugin.version>1.28.0</azure.functions.maven.plugin.version>
         <azure.functions.java.library.version>3.0.0</azure.functions.java.library.version>
-        <functionAppName>azure-functions-migration-${maven.build.timestamp}</functionAppName>
+        <spring.cloud.function.version>4.0.5</spring.cloud.function.version>
+        <spring.boot.version>3.2.6</spring.boot.version>
+        <functionAppName>course-management-function</functionAppName>
+        <functionAppRegion>eastus</functionAppRegion>
+        <spring.cloud.function.dependencies>4.0.0</spring.cloud.function.dependencies>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-function-dependencies</artifactId>
+                <version>${spring.cloud.function.dependencies}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure.functions</groupId>
+                <artifactId>azure-functions-java-library</artifactId>
+                <version>${azure.functions.java.library.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Azure Functions -->
-        <dependency>
-            <groupId>com.microsoft.azure.functions</groupId>
-            <artifactId>azure-functions-java-library</artifactId>
-            <version>${azure.functions.java.library.version}</version>
-        </dependency>
+
 
         <!-- Spring Boot (modified for Azure Functions) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-function-adapter-azure</artifactId>
-            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-function-webflux</artifactId>
+            <scope>provided</scope>
         </dependency>
 
+
+
+
         <!-- Spring Boot Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <version>3.2.6</version>
-        </dependency>
 
         <!-- Azure Blob Storage -->
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-storage-blob</artifactId>
             <version>12.24.0</version>
+            <exclusions>
+                <!-- Exclude all logging to avoid conflicts -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Jackson for JSON processing -->
@@ -87,20 +124,46 @@
             <version>3.2.6</version>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <build>
+     <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.microsoft.azure</groupId>
+                    <artifactId>azure-functions-maven-plugin</artifactId>
+                    <version>${azure.functions.maven.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>io.gatling</groupId>
+                    <artifactId>gatling-maven-plugin</artifactId>
+                    <version>4.1.5</version>
+                    <configuration>
+                        <includes>
+                            <include>com.example.loadtest.*</include>
+                        </includes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
+
 
             <plugin>
                 <groupId>com.microsoft.azure</groupId>
@@ -119,6 +182,8 @@
                     <pricingTier>Consumption</pricingTier>
                     <!-- Whether to disable application insights, default is false -->
                     <disableAppInsights>false</disableAppInsights>
+                    <hostJson>${project.basedir}/host.json</hostJson>
+                    <localSettingsJson>${project.basedir}/local.settings.json</localSettingsJson>
                     <runtime>
                         <!-- runtime os, could be windows, linux or docker-->
                         <os>linux</os>
@@ -152,6 +217,10 @@
                         </fileset>
                     </filesets>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

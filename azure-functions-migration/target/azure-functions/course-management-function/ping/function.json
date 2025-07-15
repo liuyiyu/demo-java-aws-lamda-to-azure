@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../azure-functions-migration-1.0-SNAPSHOT.jar",
+  "entryPoint" : "com.javatechie.function.PingFunction.execute",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "request",
+    "route" : "ping",
+    "methods" : [ "GET" ],
+    "authLevel" : "ANONYMOUS"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}
