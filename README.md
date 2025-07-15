@@ -347,6 +347,89 @@ sam deploy --guided
 
 ---
 
+---
+
+## 📊 AWS S3 Integration
+
+This project now includes AWS S3 read functionality integrated into the CourseController. This demonstrates how to add cloud storage capabilities to your Spring Boot Lambda application.
+
+### S3 Endpoints
+
+#### Read S3 Object Content
+```http
+GET /courses/s3/read/{objectKey}
+```
+**Description**: Reads and returns the content of a specific S3 object.
+
+**Response Example**:
+```json
+{
+  "objectKey": "sample.txt",
+  "content": "File content here..."
+}
+```
+
+#### List S3 Objects
+```http
+GET /courses/s3/list
+```
+**Description**: Lists all objects in the configured S3 bucket.
+
+**Response Example**:
+```json
+{
+  "bucket": "configured-bucket",
+  "objects": ["file1.txt", "file2.json", "folder/file3.pdf"]
+}
+```
+
+#### Check Object Existence
+```http
+GET /courses/s3/exists/{objectKey}
+```
+**Description**: Checks if a specific object exists in the S3 bucket.
+
+**Response Example**:
+```json
+{
+  "objectKey": "sample.txt",
+  "exists": true
+}
+```
+
+### Configuration
+
+Update your `application.properties` file:
+```properties
+# AWS S3 Configuration
+aws.s3.bucket.name=your-bucket-name
+aws.region=us-east-1
+```
+
+### AWS Credentials
+
+For Lambda deployment, the application uses IAM roles automatically. For local development, set these environment variables:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+### Dependencies Added
+
+The following dependencies were added to support S3 integration:
+```xml
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>s3</artifactId>
+    <version>2.20.69</version>
+</dependency>
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>auth</artifactId>
+    <version>2.20.69</version>
+</dependency>
+```
+
+---
+
 ## 🤝 Contributing
 
 This project serves as a demonstration of migration best practices with GitHub Copilot. Contributions showcasing additional Copilot usage patterns are welcome!
