@@ -460,3 +460,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **🎉 Start your migration journey with GitHub Copilot today!**
 
 *This README demonstrates how AI-powered coding assistants can accelerate cloud migration projects while maintaining code quality and architectural best practices.*
+# demo-java-aws-lambda-s3
